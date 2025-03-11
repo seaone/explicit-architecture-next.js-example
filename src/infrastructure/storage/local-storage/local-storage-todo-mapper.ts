@@ -8,7 +8,7 @@ export class LocalStorageTodoMapper {
       dto.title,
       dto.isCompleted,
       new Date(dto.createdAt),
-      new Date(dto.updatedAt)
+      dto.updatedAt ? new Date(dto.updatedAt) : null
     );
   }
 
@@ -18,7 +18,7 @@ export class LocalStorageTodoMapper {
       title: dto.title,
       isCompleted: dto.isCompleted,
       createdAt: dto.createdAt.toISOString(),
-      updatedAt: dto.createdAt.toISOString(),
+      updatedAt: dto.updatedAt ? dto.updatedAt.toISOString() : null,
     };
   }
 }
