@@ -32,7 +32,7 @@ Next.js file-based routing system. It enables layouts, nested routes, server com
   - `repositories/`: Repository interfaces and implementations (e.g., `TodoRepository`).
 - **`domain/`**: Contains domain entities and business logic.
   - `entities/`: Domain entities like `Todo`.
-  - `ports/`: Interfaces for ports (e.g., `PersistencePort`).
+- **`ports/`**: Interfaces for ports (e.g., `PersistencePort`).
 
 #### Infrastructure Layer (`src/infrastructure`)
 
