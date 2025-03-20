@@ -17,7 +17,9 @@ export function TodoList() {
   }
 
   return (
-    <div>
+    <div className="flex flex-col gap-4 w-full max-w-xl">
+      <h1 className="text-2xl font-bold">To do list</h1>
+
       <TodoCreationForm onSubmit={handleSubmit} />
 
       <ul>

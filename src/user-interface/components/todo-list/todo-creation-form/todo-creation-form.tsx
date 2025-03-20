@@ -10,15 +10,22 @@ export function TodoCreationForm({ onSubmit }: TodoCreationFormProps) {
     useTodoCreationForm({ onSubmit });
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="flex gap-4">
+    <form onSubmit={handleSubmit} className="w-full">
+      <div className="flex gap-4 w-full">
         <input
-          className="border-b"
+          className="border-b grow-1 h-6"
           type="text"
           value={title}
+          placeholder="Add task"
           onChange={handleChange}
         />
-        <button disabled={isLoading}>Ok</button>
+        <button
+          disabled={isLoading}
+          title="Add task"
+          className="border-1 w-6 h-6 p-0 leading-1 shrink-0 border-black rounded hover:bg-black hover:text-white focus:bg-black focus:text-white"
+        >
+          +
+        </button>
       </div>
 
       {error !== null && (
