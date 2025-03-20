@@ -82,8 +82,6 @@ This project follows **Explicit Architecture**, which emphasizes separation of c
 - **Dependency Rule**: Dependencies flow inward, with the core layer being independent of external systems.
 - **Testability**: The architecture promotes testability by isolating business logic from infrastructure and UI concerns.
 
-If you need further clarification, consider exploring the `README.md` file or the official [Next.js documentation](https://nextjs.org/docs).
-
 ## Getting Started
 
 First, run the development server:
