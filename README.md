@@ -22,7 +22,7 @@ The `src` directory is organized into layers that align with Explicit Architectu
 
 #### App Router (`src/app`)
 
-Next.js file-based routing system. It enables layouts, nested routes, server components, loading states, and error handling
+Next.js file-based routing system. It enables layouts, nested routes, server components, loading states, and error handling.
 
 #### Core Layer (`src/core`)
 
