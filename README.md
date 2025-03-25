@@ -1,4 +1,4 @@
-# Explicit Architecture Next.js Template
+# Explicit Architecture Next.js Example
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app). It is designed to manage a list of todos, allowing users to create, update, and delete todo items. The application leverages modern web development practices, including TypeScript, TailwindCSS, and ESLint for code quality.
 
