@@ -1,79 +1,109 @@
-import { todoUIAdapter } from "@/composition-root";
 import { Todo } from "@/core/domain/entities/todo";
-import {
-  ChangeEvent,
-  FocusEvent,
-  FormEvent,
-  MouseEvent,
-  useState,
-} from "react";
+import { ChangeEvent, FormEvent, MouseEvent, useState } from "react";
+import { z } from "zod";
 
 type UseTodoListInput = {
-  initialTitle: string;
-  initialIsCompleted: boolean;
   onRemove: (id: Todo["id"]) => void;
-  todoId: Todo["id"];
+  onUpdate: (todo: Todo) => void;
+  todo: Todo;
 };
 
 type UseTodoListOutput = {
-  title: string;
+  errors?: z.ZodFormattedError<TodoFormData>;
+  formData: TodoFormData;
   isCompleted: boolean;
   handleCheckboxChange: (event: ChangeEvent<HTMLInputElement>) => void;
   handleRemoveClick: (event: MouseEvent<HTMLButtonElement>) => void;
   handleTitleChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  handleTitleSubmit: (
-    event: FormEvent<HTMLFormElement> | FocusEvent<HTMLInputElement>
-  ) => void;
+  handleTitleSubmit: (event: FormEvent<HTMLFormElement>) => void;
+};
+
+const todoFormDataSchema = z.object({
+  title: z.string().min(1),
+});
+
+type TodoFormData = z.infer<typeof todoFormDataSchema>;
+
+const validateTodoFormData = (data: TodoFormData) => {
+  const result = todoFormDataSchema.safeParse(data);
+  return result.success ? undefined : result.error.format();
 };
 
 export const useTodoListItem = ({
-  initialTitle,
-  initialIsCompleted,
   onRemove,
-  todoId,
+  onUpdate,
+  todo,
 }: UseTodoListInput): UseTodoListOutput => {
-  const [title, setTitle] = useState(initialTitle);
-  const [isCompleted, setIsCompleted] = useState(initialIsCompleted);
+  const [userFormData, setUserFormData] = useState<Partial<TodoFormData>>({});
+  const [isCompleted, setIsCompleted] = useState<boolean>(todo.isCompleted);
+
+  const formData: TodoFormData = {
+    title: todo.title,
+    ...userFormData,
+  };
+
+  const errors = validateTodoFormData(formData);
 
   const handleCheckboxChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.checked;
     setIsCompleted(value);
 
-    try {
-      await todoUIAdapter.updateTodo(todoId, { isCompleted: value });
-    } catch (error) {
-      console.error(error);
-    }
+    const newTodo = new Todo(
+      todo.id,
+      todo.title,
+      value,
+      todo.createdAt,
+      todo.updatedAt
+    );
+
+    onUpdate(newTodo);
   };
 
   const handleTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
-    setTitle(value);
+
+    setUserFormData({
+      title: value,
+    });
   };
 
-  const handleTitleSubmit = async (
-    event: FormEvent<HTMLFormElement> | FocusEvent<HTMLInputElement>
-  ) => {
+  const handleTitleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    try {
-      await todoUIAdapter.updateTodo(todoId, { title: title });
-    } catch (error) {
-      console.error(error);
+
+    if (document.activeElement instanceof HTMLInputElement) {
+      document.activeElement.blur();
     }
+
+    if (formData.title === todo.title) {
+      return;
+    }
+
+    if (errors) {
+      setUserFormData({
+        title: todo.title, // Revert to original title if invalid
+      });
+
+      return;
+    }
+
+    const newTodo = new Todo(
+      todo.id,
+      formData.title,
+      todo.isCompleted,
+      todo.createdAt,
+      todo.updatedAt
+    );
+
+    onUpdate(newTodo);
   };
 
   const handleRemoveClick = async () => {
-    try {
-      await todoUIAdapter.deleteTodo(todoId);
-
-      onRemove(todoId);
-    } catch (error) {
-      console.error(error);
-    }
+    onRemove(todo.id);
   };
 
   return {
-    title,
+    errors,
+    formData,
     isCompleted,
     handleCheckboxChange,
     handleRemoveClick,

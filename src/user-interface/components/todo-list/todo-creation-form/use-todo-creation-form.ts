@@ -1,53 +1,84 @@
-import { todoUIAdapter } from "@/composition-root";
 import { Todo } from "@/core/domain/entities/todo";
-import { ErrorHandler } from "@/shared/errors/error-handler";
 import { ChangeEvent, FormEvent, useState } from "react";
+import { z } from "zod";
 
 type UseTodoCreationFormInput = {
-  onSubmit: (todo: Todo) => void;
+  onSubmit: (title: Todo["title"]) => void;
 };
 
 type UseTodoCreationFormOutput = {
-  error: string | null;
+  errors?: z.ZodFormattedError<TodoFormData>;
+  formData: { title: string };
+  handleBlur: () => void;
   handleChange: (event: ChangeEvent<HTMLInputElement>) => void;
   handleSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>;
-  isLoading: boolean;
-  title: string;
+  handleReset: () => void;
+};
+
+const todoFormDataSchema = z.object({
+  title: z.string().min(1),
+});
+
+type TodoFormData = z.infer<typeof todoFormDataSchema>;
+
+const initialFormData: TodoFormData = {
+  title: "",
+};
+
+const validateTodoFormData = (data: TodoFormData) => {
+  const result = todoFormDataSchema.safeParse(data);
+  return result.success ? undefined : result.error.format();
 };
 
 export function useTodoCreationForm({
   onSubmit,
 }: UseTodoCreationFormInput): UseTodoCreationFormOutput {
-  const [title, setTitle] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [hasErrors, setHasError] = useState<boolean>(false);
+  const [userFormData, setUserFormData] = useState<Partial<TodoFormData>>({});
+
+  const formData = {
+    ...initialFormData,
+    ...userFormData,
+  };
+
+  const errors = validateTodoFormData(formData);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setTitle(event.target.value);
+    setHasError(false);
+
+    setUserFormData((data) => ({
+      ...data,
+      title: event.target.value,
+    }));
+  };
+
+  const handleReset = () => {
+    setHasError(false);
+    setUserFormData({});
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsLoading(true);
 
-    try {
-      const todo = await todoUIAdapter.createTodo(title);
-
-      onSubmit(todo);
-      setTitle("");
-      setError(null);
-    } catch (error) {
-      setError(ErrorHandler.handle(error));
-    } finally {
-      setIsLoading(false);
+    if (errors) {
+      setHasError(true);
+      return;
     }
+
+    setUserFormData({});
+    onSubmit(formData.title);
+  };
+
+  const handleBlur = async () => {
+    setHasError(false);
   };
 
   return {
-    error,
+    errors: hasErrors ? errors : undefined,
+    formData,
+    handleBlur,
     handleChange,
     handleSubmit,
-    isLoading,
-    title,
+    handleReset,
   };
 }

@@ -1,13 +1,14 @@
 import { todoUIAdapter } from "@/composition-root";
 import { Todo } from "@/core/domain/entities/todo";
 import { ErrorHandler } from "@/shared/errors/error-handler";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type UseTodoListOutput = {
   error: string | null;
   isLoading: boolean;
   handleRemoveTodo: (todoId: Todo["id"]) => void;
-  handleSubmit: (todo: Todo) => void;
+  handleSubmit: (title: Todo["title"]) => void;
+  handleUpdateTodo: (todo: Todo) => void;
   todoList: Todo[] | null;
 };
 
@@ -34,25 +35,62 @@ export function useTodoList(): UseTodoListOutput {
     loadTodoList();
   }, []);
 
-  const handleRemoveTodo = (todoId: Todo["id"]) => {
-    setTodoList((prevTodos) => {
-      if (prevTodos !== null) {
-        return prevTodos.filter((t) => t.id !== todoId);
-      }
+  const handleRemoveTodo = useCallback(async (todoId: Todo["id"]) => {
+    try {
+      await todoUIAdapter.deleteTodo(todoId);
 
-      return prevTodos;
-    });
+      setTodoList((prevTodos) => {
+        if (prevTodos !== null) {
+          return prevTodos.filter((t) => t.id !== todoId);
+        }
+
+        return prevTodos;
+      });
+    } catch (error) {
+      setError(ErrorHandler.handle(error));
+    }
+  }, []);
+
+  const handleUpdateTodo = useCallback(async (todo: Todo) => {
+    try {
+      const updatedTodo = await todoUIAdapter.updateTodo(todo.id, todo);
+
+      setTodoList((prevTodos) => {
+        if (prevTodos !== null) {
+          return prevTodos.map((t) =>
+            updatedTodo.id === t.id ? updatedTodo : t
+          );
+        }
+
+        return prevTodos;
+      });
+    } catch (error) {
+      setError(ErrorHandler.handle(error));
+    }
+  }, []);
+
+  const handleSubmit = useCallback(async (title: string) => {
+    try {
+      const todo = await todoUIAdapter.createTodo(title);
+
+      setTodoList((prevTodos) => {
+        if (prevTodos !== null) {
+          return [todo, ...prevTodos];
+        }
+
+        return prevTodos;
+      });
+    } catch (error) {
+      setError(ErrorHandler.handle(error));
+    }
+  }, []);
+
+  return {
+    error,
+    isLoading,
+    handleRemoveTodo,
+    handleSubmit,
+    handleUpdateTodo,
+    todoList,
   };
-
-  const handleSubmit = (todo: Todo) => {
-    setTodoList((prevTodos) => {
-      if (prevTodos !== null) {
-        return [todo, ...prevTodos];
-      }
-
-      return prevTodos;
-    });
-  };
-
-  return { error, isLoading, todoList, handleRemoveTodo, handleSubmit };
 }

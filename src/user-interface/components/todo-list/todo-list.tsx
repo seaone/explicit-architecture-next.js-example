@@ -5,8 +5,14 @@ import { TodoListItem } from "./todo-list-item";
 import { useTodoList } from "./use-todo-list";
 
 export function TodoList() {
-  const { error, isLoading, todoList, handleRemoveTodo, handleSubmit } =
-    useTodoList();
+  const {
+    error,
+    isLoading,
+    handleRemoveTodo,
+    handleSubmit,
+    handleUpdateTodo,
+    todoList,
+  } = useTodoList();
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -25,7 +31,11 @@ export function TodoList() {
       <ul>
         {todoList?.map((t) => (
           <li className="mt-4 first:mt-0" key={t.id}>
-            <TodoListItem todo={t} onRemove={handleRemoveTodo} />
+            <TodoListItem
+              todo={t}
+              onRemove={handleRemoveTodo}
+              onUpdate={handleUpdateTodo}
+            />
           </li>
         ))}
       </ul>
